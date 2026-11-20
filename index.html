@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- MANDATORY: Declare support for both light and dark themes -->
+  <meta name="color-scheme" content="light dark">
+  <script>
+    {
+      try {
+        const savedScheme = localStorage.getItem('saju-color-scheme');
+        if (savedScheme === 'light' || savedScheme === 'dark') {
+          const meta = document.querySelector('meta[name="color-scheme"]');
+          if (meta) meta.content = savedScheme;
+          document.documentElement.dataset.theme = savedScheme;
+        }
+      } catch (_err) {
+        // Ignore storage errors in restricted environments
+      }
+    }
+  </script>
+  <title>청월당(淸月堂) — 월별 · 분기별 사주 만세력</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='14' fill='%23faf5ec' stroke='%238f2d22' stroke-width='4'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' font-weight='700' font-family='serif' fill='%238f2d22'%3E%E6%9C%88%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">본문 바로가기</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <span class="brand-seal" aria-hidden="true">月</span>
+        <div>
+          <p class="brand-kicker">전통 만세력 · 성명 오행 조화</p>
+          <h1 class="brand-title">청월당 <span class="brand-hanja" lang="zh-Hant">淸月堂</span></h1>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" id="fill-sample-btn" class="btn-ghost btn-sm">
+          예시 사주 채우기
+        </button>
+        <button
+          type="button"
+          id="theme-toggle"
+          class="btn-ghost btn-sm theme-toggle-btn"
+          aria-pressed="false"
+        >
+          <span class="theme-icon" aria-hidden="true">◐</span>
+          <span id="theme-toggle-label">시스템 테마</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content" class="container main-layout">
+    <section class="intro-hero" aria-labelledby="hero-heading">
+      <div class="hero-copy">
+        <h2 id="hero-heading">이름과 생년월일시로 읽는<br>월별 · 분기별 사주 흐름</h2>
+        <p>
+          24절기 절입시각과 한국 표준시 태양시 보정을 반영한 정통 만세력으로 사주팔자(四柱八字)를 세우고,
+          성·이름의 음령오행까지 함께 살펴 <strong>12개월 월운</strong>과 <strong>4분기 운세</strong>를 선택해 확인할 수 있습니다.
+        </p>
+      </div>
+      <dl class="hero-pillars-preview" aria-label="분석 구성 요소">
+        <div>
+          <dt>만세력 원국</dt>
+          <dd>절기 월주 · 12시진 보정</dd>
+        </div>
+        <div>
+          <dt>성명 조화</dt>
+          <dd>초성 음령오행 · 용신 대조</dd>
+        </div>
+        <div>
+          <dt>월별 · 분기별</dt>
+          <dd>12개월 + 4분기 탭 전환</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="card form-card" aria-labelledby="form-section-title">
+      <div class="section-head">
+        <div>
+          <h2 id="form-section-title">사주 정보 입력</h2>
+          <p class="section-desc"><span class="required-mark" aria-hidden="true">*</span> 표시는 필수 입력 항목입니다.</p>
+        </div>
+      </div>
+
+      <div id="history-bar" class="history-bar" hidden aria-label="최근 조회 기록">
+        <span class="history-label">최근 조회</span>
+        <div id="history-chips" class="history-chips"></div>
+      </div>
+
+      <form id="saju-form" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="last-name">성 <span class="required-mark" aria-hidden="true">*</span></label>
+            <span id="last-name-hint" class="hint">예: 김, 이, 박 (한글 또는 영문)</span>
+            <input
+              type="text"
+              id="last-name"
+              name="lastName"
+              required
+              maxlength="20"
+              autocomplete="family-name"
+              enterkeyhint="next"
+              placeholder="김"
+              aria-describedby="last-name-hint"
+              aria-errormessage="last-name-error"
+            >
+            <div id="last-name-error" class="error-msg" role="alert">
+              <span aria-hidden="true">⚠</span> 성을 입력해 주세요.
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="first-name">이름 <span class="required-mark" aria-hidden="true">*</span></label>
+            <span id="first-name-hint" class="hint">예: 서연, 민준 (성 제외한 이름)</span>
+            <input
+              type="text"
+              id="first-name"
+              name="firstName"
+              required
+              maxlength="30"
+              autocomplete="given-name"
+              enterkeyhint="next"
+              placeholder="서연"
+              aria-describedby="first-name-hint"
+              aria-errormessage="first-name-error"
+            >
+            <div id="first-name-error" class="error-msg" role="alert">
+              <span aria-hidden="true">⚠</span> 이름을 입력해 주세요.
+            </div>
+          </div>
+
+          <fieldset class="field field-fieldset">
+            <legend>달력 기준 <span class="required-mark" aria-hidden="true">*</span></legend>
+            <div class="radio-group" role="radiogroup" aria-label="달력 기준 선택">
+              <label class="radio-pill">
+                <input type="radio" name="calendarType" value="solar" checked>
+                <span>양력</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="calendarType" value="lunar">
+                <span>음력 (평달)</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="calendarType" value="lunar-leap">
+                <span>음력 (윤달)</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="birth-date">생년월일 <span class="required-mark" aria-hidden="true">*</span></label>
+            <span id="birth-date-hint" class="hint">1900-01-01 ~ 2035-12-31 사이 날짜</span>
+            <input
+              type="date"
+              id="birth-date"
+              name="birthDate"
+              required
+              min="1900-01-01"
+              max="2035-12-31"
+              autocomplete="bday"
+              aria-describedby="birth-date-hint"
+              aria-errormessage="birth-date-error"
+            >
+            <div id="birth-date-error" class="error-msg" role="alert">
+              <span aria-hidden="true">⚠</span> 올바른 생년월일을 선택해 주세요.
+            </div>
+          </div>
+
+          <div class="field field-wide">
+            <div class="label-row">
+              <label for="birth-time">태어난 시각 <span id="birth-time-req-mark" class="required-mark" aria-hidden="true">*</span></label>
+              <span id="sijin-live-badge" class="sijin-badge">시진을 확인하려면 시각을 선택하세요</span>
+            </div>
+            <span id="birth-time-hint" class="hint">한국 표준시(KST) 기준 입력 시 30분 태양시 보정으로 12시진을 자동 판정합니다.</span>
+            <div class="time-input-row">
+              <input
+                type="time"
+                id="birth-time"
+                name="birthTime"
+                required
+                aria-describedby="birth-time-hint"
+                aria-errormessage="birth-time-error"
+              >
+              <label class="checkbox-inline" for="time-unknown">
+                <input type="checkbox" id="time-unknown" name="timeUnknown">
+                <span>태어난 시각 모름 (삼주 풀이)</span>
+              </label>
+            </div>
+            <div id="birth-time-error" class="error-msg" role="alert">
+              <span aria-hidden="true">⚠</span> 태어난 시각을 입력하거나 '시각 모름'을 선택해 주세요.
+            </div>
+
+            <div class="sijin-picker-wrap" id="sijin-picker-wrap">
+              <p class="sijin-picker-label">12시진 빠른 선택</p>
+              <div id="sijin-chips" class="sijin-chips" role="group" aria-label="12시진 빠른 선택"></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="target-year">운세 조회 연도</label>
+            <span id="target-year-hint" class="hint">월별 · 분기별 운세를 볼 연도</span>
+            <select id="target-year" name="targetYear" aria-describedby="target-year-hint">
+              <option value="2024">2024년 (갑진년)</option>
+              <option value="2025">2025년 (을사년)</option>
+              <option value="2026" selected>2026년 (병오년)</option>
+              <option value="2027">2027년 (정미년)</option>
+              <option value="2028">2028년 (무신년)</option>
+              <option value="2029">2029년 (기유년)</option>
+              <option value="2030">2030년 (경술년)</option>
+            </select>
+          </div>
+
+          <fieldset class="field field-fieldset">
+            <legend>성별 (선택)</legend>
+            <div class="radio-group" role="radiogroup" aria-label="성별 선택">
+              <label class="radio-pill">
+                <input type="radio" name="gender" value="none" checked>
+                <span>선택 안 함</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="gender" value="female">
+                <span>여성</span>
+              </label>
+              <label class="radio-pill">
+                <input type="radio" name="gender" value="male">
+                <span>남성</span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div id="form-global-error" class="form-global-error" role="alert" hidden></div>
+
+        <div class="form-actions">
+          <button type="submit" id="submit-btn" class="btn-primary">
+            월별 · 분기별 사주 보기
+          </button>
+          <button type="reset" id="reset-btn" class="btn-ghost">
+            초기화
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section id="results-section" class="results-section" hidden aria-live="polite">
+      <div class="card profile-banner" id="profile-banner"></div>
+
+      <div class="natal-layout">
+        <article class="card natal-card" aria-labelledby="natal-title">
+          <div class="section-head">
+            <div>
+              <h2 id="natal-title">사주 원국 <span class="hanja-muted" lang="zh-Hant">四柱八字</span></h2>
+              <p class="section-desc" id="natal-subtitle"></p>
+            </div>
+            <div id="natal-strength-badge" class="strength-pill"></div>
+          </div>
+          <div id="pillars-grid" class="pillars-grid"></div>
+          <div id="day-master-box" class="day-master-box"></div>
+        </article>
+
+        <div class="natal-side-col">
+          <article class="card elements-card" aria-labelledby="elements-title">
+            <h2 id="elements-title">오행 분포 · 용신(用神)</h2>
+            <div id="elements-chart-wrap"></div>
+            <div id="yongsin-grid" class="yongsin-grid"></div>
+          </article>
+
+          <article class="card name-card" aria-labelledby="name-title">
+            <h2 id="name-title">성명 음령오행 조화</h2>
+            <div id="name-analysis-wrap"></div>
+          </article>
+        </div>
+      </div>
+
+      <section class="card fortune-board" aria-labelledby="fortune-board-title">
+        <div class="fortune-board-head">
+          <div>
+            <p class="board-kicker" id="annual-headline"></p>
+            <h2 id="fortune-board-title">운세 기간 보기 선택</h2>
+          </div>
+
+          <div class="board-controls">
+            <label for="result-year-select" class="sr-only">조회 연도 변경</label>
+            <select id="result-year-select" class="year-inline-select" aria-label="조회 연도 변경">
+              <option value="2024">2024년 (갑진)</option>
+              <option value="2025">2025년 (을사)</option>
+              <option value="2026">2026년 (병오)</option>
+              <option value="2027">2027년 (정미)</option>
+              <option value="2028">2028년 (무신)</option>
+              <option value="2029">2029년 (기유)</option>
+              <option value="2030">2030년 (경술)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="view-tabs-bar">
+          <div class="view-tablist" role="tablist" aria-label="월별 사주 및 분기별 사주 선택">
+            <button
+              type="button"
+              role="tab"
+              id="tab-monthly"
+              class="view-tab"
+              aria-selected="true"
+              aria-controls="panel-monthly"
+            >
+              <span class="tab-main">월별 사주</span>
+              <span class="tab-sub">12개월 흐름</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-quarterly"
+              class="view-tab"
+              aria-selected="false"
+              aria-controls="panel-quarterly"
+              tabindex="-1"
+            >
+              <span class="tab-main">분기별 사주</span>
+              <span class="tab-sub">4분기 전략</span>
+            </button>
+          </div>
+
+          <div id="annual-quick-stats" class="annual-quick-stats"></div>
+        </div>
+
+        <div
+          id="panel-monthly"
+          class="view-panel"
+          role="tabpanel"
+          aria-labelledby="tab-monthly"
+        >
+          <div class="chart-card-box">
+            <div class="chart-card-head">
+              <h3>월별 운세 지수 곡선</h3>
+              <p class="chart-hint">각 월의 점이나 카드를 누르면 세부 재물·직업·애정·건강 풀이를 볼 수 있습니다.</p>
+            </div>
+            <div id="monthly-chart-wrap" class="svg-scroll-wrap"></div>
+          </div>
+
+          <div class="filter-bar" role="group" aria-label="월별 필터">
+            <button type="button" class="filter-chip is-active" data-month-filter="all">전체 12개월</button>
+            <button type="button" class="filter-chip" data-month-filter="q1">1분기 (1~3월)</button>
+            <button type="button" class="filter-chip" data-month-filter="q2">2분기 (4~6월)</button>
+            <button type="button" class="filter-chip" data-month-filter="q3">3분기 (7~9월)</button>
+            <button type="button" class="filter-chip" data-month-filter="q4">4분기 (10~12월)</button>
+            <button type="button" class="filter-chip" data-month-filter="great">길운 중심 (74점+)</button>
+          </div>
+
+          <div id="monthly-grid" class="monthly-grid"></div>
+        </div>
+
+        <div
+          id="panel-quarterly"
+          class="view-panel"
+          role="tabpanel"
+          aria-labelledby="tab-quarterly"
+          hidden
+        >
+          <div class="chart-card-box">
+            <div class="chart-card-head">
+              <h3>분기별 종합 · 영역별 비교</h3>
+              <p class="chart-hint">각 분기는 해당 3개월 월운의 평균과 흐름 기울기를 바탕으로 산출됩니다.</p>
+            </div>
+            <div id="quarterly-chart-wrap" class="svg-scroll-wrap"></div>
+          </div>
+
+          <div id="quarterly-grid" class="quarterly-grid"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>청월당 만세력 엔진 · 절기 태양 황경 &amp; 한국 표준시(KST) 기반 산출</p>
+      <p class="footer-note">본 사주 풀이는 전통 명리학 원리를 바탕으로 한 참고용 가이드입니다.</p>
+    </div>
+  </footer>
+
+  <!-- MANDATORY: Use closedby="any" to enable light-dismiss behavior -->
+  <dialog id="detail-dialog" class="detail-dialog" closedby="any" aria-labelledby="dialog-title">
+    <div class="dialog-shell">
+      <div class="dialog-header">
+        <div>
+          <p id="dialog-kicker" class="dialog-kicker"></p>
+          <h2 id="dialog-title" class="dialog-title"></h2>
+        </div>
+        <form method="dialog">
+          <button type="submit" class="dialog-close-btn" aria-label="상세 창 닫기">✕</button>
+        </form>
+      </div>
+
+      <div id="dialog-body" class="dialog-body"></div>
+
+      <div class="dialog-footer">
+        <button type="button" id="dialog-prev-btn" class="btn-ghost btn-sm">← 이전</button>
+        <form method="dialog">
+          <button type="submit" class="btn-primary btn-sm">닫기</button>
+        </form>
+        <button type="button" id="dialog-next-btn" class="btn-ghost btn-sm">다음 →</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
